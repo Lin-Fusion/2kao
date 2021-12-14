@@ -9,6 +9,9 @@ export default class AdminController extends Controller {
     try{
     limit1 = parseInt(limit);
     page1 = parseInt(page);
+    if((limit1<=0)||(page1<=0)){
+      ctx.service.error.error('参数错误')
+    }
     let total = await User.count();
     let list = await User.findAll({
       limit:limit1,
@@ -33,8 +36,8 @@ export default class AdminController extends Controller {
   public async addcourse() {
     const { ctx } = this;
     try{ctx.validate({
-        name:'string',
-        capacity:'number',
+        name:{type:'string',max:20},
+        capacity:{type:'number',min:1},
         day:'number',
         time:'number'
     })} catch (error) {
@@ -44,7 +47,7 @@ export default class AdminController extends Controller {
     }
     return
     }
-    const { capacity,name,day,time } = ctx.request.body;
+    const { capacity,name,day,time,force} = ctx.request.body;
     if((day>7)||(day<1)){
       ctx.service.error.error('天数无效')
       return
@@ -54,20 +57,50 @@ export default class AdminController extends Controller {
       return
     }
     const { Course }=ctx.model;
-    let course = await Course.create({
+    let exist = await Course.findOne({
+      where:{
         name:name,
-        capacity:capacity,
         day:day,
-        time:time,
-        number:0,
-      })
-      ctx.body={
-        "success" : true,
-        "data":{
-          "id":course.id,
-        }
+        time:time
       }
-
+    })
+    let force1 = parseInt(force)
+    if(exist){
+      if(force1==1){
+        let course = await Course.create({
+          name:name,
+          capacity:capacity,
+          day:day,
+          time:time,
+          number:0,
+        })
+        ctx.body={
+          "success" : true,
+          "data":{
+            "id":course.id,
+            "data":{
+              "tip":"已创建相似课程"
+            }
+          }
+        }
+        return
+      }
+      ctx.service.error.error("已有相同名称相同时间的课程，若需添加请增加 'force':1 请求")
+      return
+    }
+    let course = await Course.create({
+      name:name,
+      capacity:capacity,
+      day:day,
+      time:time,
+      number:0,
+    })
+    ctx.body={
+      "success" : true,
+      "data":{
+        "id":course.id,
+      }
+    }
   }
 
   public async delete(){
@@ -92,7 +125,10 @@ export default class AdminController extends Controller {
     }else{
       ctx.service.error.error('此课不存在')
     }
-    }
+
+
+
+  }
 
   public async schedule() {
   const { ctx } = this;
@@ -101,6 +137,9 @@ export default class AdminController extends Controller {
   try{ 
   limit1 = parseInt(limit);
   page1 = parseInt(page);
+  if((limit1<=0)||(page1<=0)){
+    ctx.service.error.error('参数错误')
+  }
   let id = parseInt(userId);
   let {count,rows} = await ctx.model.Choose.findAndCountAll({
     where:{user_id:id},
@@ -132,6 +171,9 @@ export default class AdminController extends Controller {
     try{ 
     limit1 = parseInt(limit);
     page1 = parseInt(page);
+    if((limit1<=0)||(page1<=0)){
+      ctx.service.error.error('参数错误')
+    }
     let id = parseInt(courseId);
     let {count,rows} = await ctx.model.Choose.findAndCountAll({
       where:{course_id:id},
@@ -158,16 +200,16 @@ export default class AdminController extends Controller {
 
   public async changeInfo() {
     const { ctx } = this;
-    const {courseId,name,day,time,capacity,number} = ctx.request.body;
+    const {id,name,day,time,capacity,number} = ctx.request.body;
     try {
       ctx.validate({
-        courseId:"number"
+        id:"number"
       })
     } catch (error) {
       ctx.service.error.error('参数错误')
       return
     }
-    let course =await ctx.model.Course.findByPk(courseId)
+    let course =await ctx.model.Course.findByPk(id)
     if(course){
       try{ 
         if(name){course.name = name}

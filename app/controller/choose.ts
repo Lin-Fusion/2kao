@@ -10,6 +10,9 @@ export default class ChooseController extends Controller {
    try{ 
     limit1 = parseInt(limit);
     page1 = parseInt(page);
+    if((limit1<=0)||(page1<=0)){
+      ctx.service.error.error('参数错误')
+    }
     let {count,rows} = await ctx.model.Choose.findAndCountAll({
       where:{user_id:id},
       limit:limit1,
@@ -42,9 +45,9 @@ export default class ChooseController extends Controller {
     const {courseId,day,time} = ctx.request.body;
     try {
       ctx.validate({
-        courseId:"number",
-        day:"number",
-        time:"number"
+        courseId:{type:'number',min:1},
+        day:{type:'number',min:1},
+        time:{type:'number',min:1},
       })
     } catch (error) {
       ctx.service.error.error("参数错误")
@@ -64,20 +67,20 @@ export default class ChooseController extends Controller {
       }
     })
 
-    let exsit = await Course.findOne({
+    let exist = await Course.findOne({
       where:{
         id:courseId,
         day:day,
         time:time
       }
     })
-    if(exsit){
+    if(exist){
     }else{
       ctx.service.error.error('课程不存在')
       return
     }
 
-    let {number,capacity} = exsit;
+    let {number,capacity} = exist;
 
     if((capacity-number)<=0){
       ctx.service.error.error('该课已满')

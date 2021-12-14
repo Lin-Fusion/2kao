@@ -9,6 +9,9 @@ export default class CourseController extends Controller {
     try{
     limit1 = parseInt(limit);
     page1 = parseInt(page);
+    if((limit1<=0)||(page1<=0)){
+      ctx.service.error.error('参数错误')
+    }
     let total = await Course.count();
     let list = await Course.findAll({
       limit:limit1,

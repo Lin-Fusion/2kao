@@ -4,9 +4,9 @@ export default class UserController extends Controller {
   public async register() {
     const { ctx } = this;
     try{ctx.validate({
-        name:'string',
-        number:'string',
-        password:'string'
+        name:{type:'string',max:20},
+        number:{type:'string',max:20},
+        password:{type:'string',max:20},
     })
   } catch (error) {
     ctx.body={
@@ -46,8 +46,8 @@ export default class UserController extends Controller {
   public async login() {
     const { ctx } = this;
     try{ctx.validate({
-      number:'string',
-      password:'string'
+      number:{type:'string',max:20},
+      password:{type:'string',max:20},
       })
     } catch (error) {
         ctx.body={
