@@ -18,5 +18,5 @@ export default (app: Application) => {
   router.delete('/api/admin/delete/course/:id',admin,controller.admin.delete);
   router.get('/api/admin/schedule/user',admin,controller.admin.schedule);
   router.put('/api/admin/changeinfo',admin,controller.admin.changeInfo);
-  router.get('/api/admin/schdule/course',admin,controller.admin.course);
+  router.get('/api/admin/schedule/course',admin,controller.admin.course);
 };

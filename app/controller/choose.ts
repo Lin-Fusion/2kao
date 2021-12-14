@@ -42,23 +42,25 @@ export default class ChooseController extends Controller {
     const { Choose } = ctx.model;
     const { Course } = ctx.model;
     let id = ctx.session.id;
-    const {courseId,day,time} = ctx.request.body;
+    const {courseId} = ctx.request.body;
     try {
       ctx.validate({
         courseId:{type:'number',min:1},
-        day:{type:'number',min:1},
-        time:{type:'number',min:1},
       })
     } catch (error) {
       ctx.service.error.error("参数错误")
       return
     }
-    let course = await Choose.findOne({
-      where: {
-        user_id:id,
-        course_id:courseId
-      }
-    })
+
+    let exist = await Course.findByPk(courseId)
+    if(exist){
+      var day = exist.day
+      var time = exist.time
+    }else{
+      ctx.service.error.error('课程不存在')
+      return
+    }
+    let {number,capacity} = exist;
     let schedule = await Choose.findOne({
       where: {
         user_id:id,
@@ -66,21 +68,12 @@ export default class ChooseController extends Controller {
         time:time
       }
     })
-
-    let exist = await Course.findOne({
-      where:{
-        id:courseId,
-        day:day,
-        time:time
+    let course = await Choose.findOne({
+      where: {
+        user_id:id,
+        course_id:courseId
       }
     })
-    if(exist){
-    }else{
-      ctx.service.error.error('课程不存在')
-      return
-    }
-
-    let {number,capacity} = exist;
 
     if((capacity-number)<=0){
       ctx.service.error.error('该课已满')
